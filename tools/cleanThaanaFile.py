@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# -*# -*- coding: utf-8 -*-
+import pandas as pd
 
 ehbari = ["ސުމެއް","އެއް","ދެ","ތިން","ހަތަރު","ފަސް","ހަ","ހަތް","އަށް","ނުވަ","ދިހަ","އެގާރަ","ބާރަ","ތޭރަ","ސާދަ","ފަނަރަ","ސޯޅަ","ސަތާރަ","އަށާރަ","ނަވާރަ","ވިހި","އެކާވީސް","ބާވީސް","ތޭވީސް","ސައުވީސް","ފަންސަވީސް","ސައްބީސް","ހަތާވީސް","އަށާވީސް","ނަވާވީސް"]
 dhihabari = ["ސުން","ދިހަ","ވިހި","ތިރީސް","ސާޅީސް","ފަންސާސް","ފަސްދޮޅަސް","ހައްދިހަ","އައްޑިހަ","ނުވަދިހަ"]
@@ -61,6 +62,26 @@ def splitdhivehi(line,char):
         newlines = newlines + (dline.strip()) +"\n"
     return newlines
 
+def FixEveSheve(line):
+    try:
+        df = pd.read_csv("evemaps.csv",sep=",",header=0)
+        evecount =(df.count().eve)
+        bas_list = line.split()
+        fahubas = (bas_list[-1])
+        for r in range(evecount):
+            eve = df.iloc[r].eve
+            bas = fahubas[-(len(eve)):]
+            if (eve == bas):
+                newbas = fahubas.replace(eve,df.iloc[r].normal)
+                newline = ""
+                for rr in range (len(bas_list)-1):
+                    newline = newline + bas_list[rr] 
+                newline = newline + " " + newbas
+                print (newline.strip())
+                break
+    except:
+        pass
+
 def CleanAndReplaceNumbers(line):
     newlines = ""
     ls = line.split("\n")
@@ -71,8 +92,8 @@ def CleanAndReplaceNumbers(line):
                 if s.isdigit():
                     numbaru = Badhalu(s)
                     dline = dline.replace(s, numbaru)
-            newlines = newlines + (dline.strip())+"\n" 
-    return newlines
+                    #to-do : one more valification to see if string (still) contrains a number. if so remove line ?
+            newlines = FixEveSheve(dline)
 
 def processfile(file):
     file = open(file,"r") 
@@ -84,5 +105,4 @@ def processfile(file):
     
     return result
 
-newresult = CleanAndReplaceNumbers(processfile("splittest.txt"))
-print (newresult)
+CleanAndReplaceNumbers(processfile("splittest.txt"))
