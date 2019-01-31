@@ -1,5 +1,6 @@
-# -*# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import pandas as pd
+from langdetect import detect
 
 ehbari = ["ސުމެއް","އެއް","ދެ","ތިން","ހަތަރު","ފަސް","ހަ","ހަތް","އަށް","ނުވަ","ދިހަ","އެގާރަ","ބާރަ","ތޭރަ","ސާދަ","ފަނަރަ","ސޯޅަ","ސަތާރަ","އަށާރަ","ނަވާރަ","ވިހި","އެކާވީސް","ބާވީސް","ތޭވީސް","ސައުވީސް","ފަންސަވީސް","ސައްބީސް","ހަތާވީސް","އަށާވީސް","ނަވާވީސް"]
 dhihabari = ["ސުން","ދިހަ","ވިހި","ތިރީސް","ސާޅީސް","ފަންސާސް","ފަސްދޮޅަސް","ހައްދިހަ","އައްޑިހަ","ނުވަދިހަ"]
@@ -77,7 +78,12 @@ def FixEveSheve(line):
                 for rr in range (len(bas_list)-1):
                     newline = newline + bas_list[rr] 
                 newline = newline + " " + newbas
-                print (newline.strip())
+                lang = ''
+                try:
+                    lang = detect(newline) == 'en' 
+                except:
+                    if lang != 'en' : #if not english then we assume it's dhivehi. 
+                        print (newline.strip())
                 break
     except:
         pass
@@ -93,7 +99,7 @@ def CleanAndReplaceNumbers(line):
                     numbaru = Badhalu(s)
                     dline = dline.replace(s, numbaru)
                     #to-do : one more valification to see if string (still) contrains a number. if so remove line ?
-            newlines = FixEveSheve(dline)
+            FixEveSheve(dline)
 
 def processfile(file):
     file = open(file,"r") 
