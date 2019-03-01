@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 from langdetect import detect
+import argparse
+from tqdm import tqdm
 
 ehbari = ["ސުމެއް","އެއް","ދެ","ތިން","ހަތަރު","ފަސް","ހަ","ހަތް","އަށް","ނުވަ","ދިހަ","އެގާރަ","ބާރަ","ތޭރަ","ސާދަ","ފަނަރަ","ސޯޅަ","ސަތާރަ","އަށާރަ","ނަވާރަ","ވިހި","އެކާވީސް","ބާވީސް","ތޭވީސް","ސައުވީސް","ފަންސަވީސް","ސައްބީސް","ހަތާވީސް","އަށާވީސް","ނަވާވީސް"]
 dhihabari = ["ސުން","ދިހަ","ވިހި","ތިރީސް","ސާޅީސް","ފަންސާސް","ފަސްދޮޅަސް","ހައްދިހަ","އައްޑިހަ","ނުވަދިހަ"]
@@ -59,11 +61,15 @@ def splitdhivehi(line,char):
     newlines = ""
     ls = line.split(char)
     for r in range (len(ls)):
-        dline = (ls[r].strip())
-        newlines = newlines + (dline.strip()) +"\n"
+        dline = (ls[r]) #.strip())
+        newlines = newlines + dline +" \n" #(dline.strip()) +" \n"
+        #print (newlines)
     return newlines
 
-def FixEveSheve(line):
+def FixEveSheve(line,outfile):
+    if outfile is not None:
+        file = open(outfile,"a") 
+
     try:
         df = pd.read_csv("evemaps.csv",sep=",",header=0)
         evecount =(df.count().eve)
@@ -76,30 +82,39 @@ def FixEveSheve(line):
                 newbas = fahubas.replace(eve,df.iloc[r].normal)
                 newline = ""
                 for rr in range (len(bas_list)-1):
-                    newline = newline + bas_list[rr] 
+                    newline = newline + " " + bas_list[rr] 
                 newline = newline + " " + newbas
                 lang = ''
                 try:
                     lang = detect(newline) == 'en' 
                 except:
                     if lang != 'en' : #if not english then we assume it's dhivehi. 
-                        print (newline.strip())
+                        if outfile is None:
+                            print (newline.strip())
+                        else:
+                            file.write(newline.strip()+"\n")
                 break
     except:
         pass
 
-def CleanAndReplaceNumbers(line):
+def CleanAndReplaceNumbers(line,maxlen,outfile):
     newlines = ""
     ls = line.split("\n")
-    for r in range (len(ls)):
+
+    if (outfile is not None):
+         xx = tqdm(range (len(ls)))
+    else:
+         xx = range (len(ls))
+
+    for r in xx:
         dline = (ls[r].strip())
-        if (len(dline) < 60) :
+        if (len(dline) < maxlen) :
             for s in dline.split():
                 if s.isdigit():
-                    numbaru = Badhalu(s)
+                    numbaru = Badhalu(str(int(s)))
                     dline = dline.replace(s, numbaru)
                     #to-do : one more valification to see if string (still) contrains a number. if so remove line ?
-            FixEveSheve(dline)
+            FixEveSheve(dline,outfile)
 
 def processfile(file):
     file = open(file,"r") 
@@ -107,8 +122,43 @@ def processfile(file):
     result = splitdhivehi(all_of_it,".")
     result = splitdhivehi(result,"،")
     result = splitdhivehi(result,"!")
-    result = (result.replace('“',''))
+    result = (result.replace(' ','  '))
+    result = (result.replace('“',' '))
+    result = (result.replace('"',' '))
+    result = (result.replace('(',' '))
+    result = (result.replace(')',' '))
+    result = (result.replace('[',' '))
+    result = (result.replace(']',' '))
+    result = (result.replace(')',' '))
+    result = (result.replace('(',' '))
+    result = (result.replace(':',' '))
+    result = (result.replace('-',' '))
+    result = (result.replace('/',' '))
+    result = (result.replace('\\','')) 
+    result = (result.replace('”',' ')) 
+    result = (result.replace('–',' ')) 
     
     return result
 
-CleanAndReplaceNumbers(processfile("splittest.txt"))
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--maxlen", help="max number of characters to select for sentences ", default=120, type=int)
+    parser.add_argument("--input", help = "input filename")
+    parser.add_argument("--output", help = "output filename")
+
+
+    args = parser.parse_args()
+
+    inputfile = args.input 
+    outfile = args.output
+    maxlen = args.maxlen
+
+    if inputfile is None:
+        print ("err: need input file")
+    else:
+        if args.output:
+            CleanAndReplaceNumbers(processfile(inputfile),maxlen,outfile)
+        else:
+            CleanAndReplaceNumbers(processfile(inputfile),maxlen,None)
