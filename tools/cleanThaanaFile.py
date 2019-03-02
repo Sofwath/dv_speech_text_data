@@ -4,6 +4,7 @@ from langdetect import detect
 import argparse
 from tqdm import tqdm
 import os.path
+import re
 
 ehbari = ["ސުމެއް","އެއް","ދެ","ތިން","ހަތަރު","ފަސް","ހަ","ހަތް","އަށް","ނުވަ","ދިހަ","އެގާރަ","ބާރަ","ތޭރަ","ސާދަ","ފަނަރަ","ސޯޅަ","ސަތާރަ","އަށާރަ","ނަވާރަ","ވިހި","އެކާވީސް","ބާވީސް","ތޭވީސް","ސައުވީސް","ފަންސަވީސް","ސައްބީސް","ހަތާވީސް","އަށާވީސް","ނަވާވީސް"]
 dhihabari = ["ސުން","ދިހަ","ވިހި","ތިރީސް","ސާޅީސް","ފަންސާސް","ފަސްދޮޅަސް","ހައްދިހަ","އައްޑިހަ","ނުވަދިހަ"]
@@ -68,7 +69,6 @@ def splitdhivehi(line,char):
     return newlines
 
 def FixEveSheve(line,file):
-  
     try:
         df = pd.read_csv("evemaps.csv",sep=",",header=0)
         evecount =(df.count().eve)
@@ -108,16 +108,17 @@ def CleanAndReplaceNumbers(line,maxlen,minlen,file):
 
     for r in xx:
         dline = (ls[r].strip())
-        if (len(dline) > minlen) and (len(dline) < maxlen) :
-            for s in dline.split():
-                if s.isdigit():
-                    numbaru = Badhalu(str(int(s)))
-                    dline = dline.replace(s, numbaru)
-                    #to-do : one more valification to see if string (still) contrains a number. if so remove line ?
-            FixEveSheve(dline,file)
+        if not (re.search('[a-zA-Z]+',dline)):
+            if (len(dline) > minlen) and (len(dline) < maxlen) :
+                for s in dline.split():
+                    if s.isdigit():
+                        numbaru = Badhalu(str(int(s)))
+                        dline = dline.replace(s, numbaru)
+                        #to-do : one more valification to see if string (still) contrains a number. if so remove line ?
+                FixEveSheve(dline,file)
 
 def processfile(file):
-    print ("cleaning file....\n")
+    print ("cleaning file....")
     file = open(file,"r") 
     all_of_it = file.read()
     result = splitdhivehi(all_of_it,".")
@@ -166,8 +167,10 @@ if __name__ == '__main__':
             if args.output:
                 file = open(outfile,"w") 
                 CleanAndReplaceNumbers(processfile(inputfile),maxlen,minlen,file)
-                print ("done.\n")
                 file.close()
+                num_lines = sum(1 for line in open(outfile))
+                print ("no of sentences extracted: "+ str(num_lines))
+                print ("done.\n")
             else:
                 CleanAndReplaceNumbers(processfile(inputfile),maxlen,minlen,None)
         else:
