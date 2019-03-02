@@ -3,6 +3,7 @@ import pandas as pd
 from langdetect import detect
 import argparse
 from tqdm import tqdm
+import os.path
 
 ehbari = ["ސުމެއް","އެއް","ދެ","ތިން","ހަތަރު","ފަސް","ހަ","ހަތް","އަށް","ނުވަ","ދިހަ","އެގާރަ","ބާރަ","ތޭރަ","ސާދަ","ފަނަރަ","ސޯޅަ","ސަތާރަ","އަށާރަ","ނަވާރަ","ވިހި","އެކާވީސް","ބާވީސް","ތޭވީސް","ސައުވީސް","ފަންސަވީސް","ސައްބީސް","ހަތާވީސް","އަށާވީސް","ނަވާވީސް"]
 dhihabari = ["ސުން","ދިހަ","ވިހި","ތިރީސް","ސާޅީސް","ފަންސާސް","ފަސްދޮޅަސް","ހައްދިހަ","އައްޑިހަ","ނުވަދިހަ"]
@@ -66,10 +67,8 @@ def splitdhivehi(line,char):
         #print (newlines)
     return newlines
 
-def FixEveSheve(line,outfile):
-    if outfile is not None:
-        file = open(outfile,"a") 
-
+def FixEveSheve(line,file):
+  
     try:
         df = pd.read_csv("evemaps.csv",sep=",",header=0)
         evecount =(df.count().eve)
@@ -97,7 +96,8 @@ def FixEveSheve(line,outfile):
     except:
         pass
 
-def CleanAndReplaceNumbers(line,maxlen,outfile):
+def CleanAndReplaceNumbers(line,maxlen,minlen,file):
+    print ("extracting sentences....\n")
     newlines = ""
     ls = line.split("\n")
 
@@ -108,15 +108,16 @@ def CleanAndReplaceNumbers(line,maxlen,outfile):
 
     for r in xx:
         dline = (ls[r].strip())
-        if (len(dline) < maxlen) :
+        if (len(dline) > minlen) and (len(dline) < maxlen) :
             for s in dline.split():
                 if s.isdigit():
                     numbaru = Badhalu(str(int(s)))
                     dline = dline.replace(s, numbaru)
                     #to-do : one more valification to see if string (still) contrains a number. if so remove line ?
-            FixEveSheve(dline,outfile)
+            FixEveSheve(dline,file)
 
 def processfile(file):
+    print ("cleaning file....\n")
     file = open(file,"r") 
     all_of_it = file.read()
     result = splitdhivehi(all_of_it,".")
@@ -137,6 +138,7 @@ def processfile(file):
     result = (result.replace('\\','')) 
     result = (result.replace('”',' ')) 
     result = (result.replace('–',' ')) 
+    result = (result.replace('…',''))
     
     return result
 
@@ -144,9 +146,10 @@ def processfile(file):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--maxlen", help="max number of characters to select for sentences ", default=120, type=int)
+    parser.add_argument("--maxlen", help="optional: max number of characters to select for sentences (default is 120)", default=120, type=int)
+    parser.add_argument("--minlen", help="optional: min number of characters to select for sentences (default is 10)", default=10, type=int)
     parser.add_argument("--input", help = "input filename")
-    parser.add_argument("--output", help = "output filename")
+    parser.add_argument("--output", help = "optional: output filename")
 
 
     args = parser.parse_args()
@@ -154,11 +157,18 @@ if __name__ == '__main__':
     inputfile = args.input 
     outfile = args.output
     maxlen = args.maxlen
+    minlen = args.minlen
 
     if inputfile is None:
         print ("err: need input file")
     else:
-        if args.output:
-            CleanAndReplaceNumbers(processfile(inputfile),maxlen,outfile)
+        if os.path.isfile(inputfile):
+            if args.output:
+                file = open(outfile,"w") 
+                CleanAndReplaceNumbers(processfile(inputfile),maxlen,minlen,file)
+                print ("done.\n")
+                file.close()
+            else:
+                CleanAndReplaceNumbers(processfile(inputfile),maxlen,minlen,None)
         else:
-            CleanAndReplaceNumbers(processfile(inputfile),maxlen,None)
+            print ("file does not exist!\n")
