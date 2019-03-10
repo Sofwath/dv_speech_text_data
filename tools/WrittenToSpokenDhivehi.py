@@ -11,8 +11,6 @@ ehbari = ["ސުމެއް","އެއް","ދެ","ތިން","ހަތަރު","ފަސް",
 dhihabari = ["ސުން","ދިހަ","ވިހި","ތިރީސް","ސާޅީސް","ފަންސާސް","ފަސްދޮޅަސް","ހައްދިހަ","އައްޑިހަ","ނުވަދިހަ"]
 sunbari = ["","ހާސް","މިލިޔަން","ބިލިޔަން","ޓްރިލިޔަން"]
 
-done = False
-
 def Badhalu(inputString):
 	intNum = eval(inputString.strip())
 	if intNum < 1000:
@@ -73,7 +71,7 @@ def splitdhivehi(line,char):
 
 def AiiMaps(line):
     newline =""
-    df = pd.read_csv("aaimaps.csv",sep=",",header=0)
+    df = pd.read_csv("aaimaps.csv",sep=",",header=0) #mappings by @YahyasDad
     aaicount =(df.count().aai)
     bas_list = line.split()
     for i in range(0 , len(bas_list)):
@@ -101,10 +99,11 @@ def WriteFile(line,file):
 
 def FixEveSheve(line,file):
     try:
-        df = pd.read_csv("evemaps.csv",sep=",",header=0)
+        df = pd.read_csv("evemaps.csv",sep=",",header=0) #mappings by @YahyasDad
         evecount =(df.count().eve)
         bas_list = line.split()
         fahubas = (bas_list[-1])
+        found = False
         for r in range(evecount):
             eve = df.iloc[r].eve
             bas = fahubas[-(len(eve)):]
@@ -114,11 +113,13 @@ def FixEveSheve(line,file):
                 for rr in range (len(bas_list)-1):
                     newline = newline + " " + bas_list[rr] 
                 newline = newline + " " + newbas
+                found = True
                 WriteFile(newline,file)
                 break
-            else:
-                WriteFile(line,file)
-                break
+            
+        if not found:
+            WriteFile(line,file) # fix 14217
+                
     except:
         pass
 
