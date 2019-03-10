@@ -64,9 +64,8 @@ def splitdhivehi(line,char):
     newlines = ""
     ls = line.split(char)
     for r in range (len(ls)):
-        dline = (ls[r]) #.strip())
-        newlines = newlines + dline +" \n" #(dline.strip()) +" \n"
-        #print (newlines)
+        dline = (ls[r]) 
+        newlines = newlines + dline +" \n" 
     return newlines
 
 def AiiMaps(line):
@@ -87,6 +86,9 @@ def AiiMaps(line):
     return newline
 
 def WriteFile(line,file):
+    if (line[(len(line)-1)]=="!") or (line[(len(line)-1)]=="؟"):
+        line = line[(len(line)-1)] + line[0:(len(line)-1)]
+
     lang = ''
     try:
         lang = detect(line) == 'en' 
@@ -94,6 +96,7 @@ def WriteFile(line,file):
         if lang != 'en' : #if not english then we assume it's dhivehi. 
             if outfile is None:
                 print (line.strip())
+                pass
             else:
                 file.write(line.strip()+"\n")    
 
