@@ -120,8 +120,9 @@ def FixEveSheve(line,file):
                 WriteFile(newline,file)
                 break
             
-        if not found:
-            WriteFile(line,file) # fix 14217
+        #keep commented until all mappings are complete in the evemappings file
+	#if not found:
+            #WriteFile(line,file) # fix 14217
                 
     except:
         pass
